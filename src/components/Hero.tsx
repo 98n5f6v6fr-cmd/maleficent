@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 export default function Hero() {
   const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { setMounted(true); }, []); // eslint-disable-line react-hooks/set-state-in-effect
   return (
     <section className="relative min-h-[55vh] flex items-center overflow-hidden pt-16">
       <div className="absolute inset-0 bg-gradient-to-b from-[#FFF8E8] via-[#FFFDF7] to-[#FFFDF7]" />
