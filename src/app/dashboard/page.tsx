@@ -22,10 +22,9 @@ interface Application {
 interface Purchase {
   id: number;
   productName: string;
-  date: string;
+  createdAt: string;
   status: string;
   amount: number;
-  paymentData?: string;
 }
 
 export default function DashboardPage() {
@@ -222,7 +221,7 @@ export default function DashboardPage() {
                     <div>
                       <p className="font-medium text-[#171717]">{p.productName}</p>
                       <p className="text-xs text-[#2C2C2C]/50 mt-0.5">
-                        {new Date(p.date).toLocaleDateString("ru-RU")}
+                        {new Date(p.createdAt).toLocaleDateString("ru-RU")}
                       </p>
                     </div>
                     <div className="flex items-center gap-4">

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 interface Notification {
   id: number;
   message: string;
-  read: boolean;
+  isRead: boolean;
   createdAt: string;
 }
 
@@ -62,7 +62,7 @@ export default function BellNotifications() {
       method: "PATCH",
       headers: { Authorization: `Bearer ${token}` },
     });
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     setUnreadCount(0);
   };
 
@@ -112,7 +112,7 @@ export default function BellNotifications() {
                   <div
                     key={n.id}
                     className={`px-4 py-3 border-b border-white/10 text-sm transition-colors ${
-                      n.read ? "opacity-50" : "bg-[#F7B733]/5"
+                      n.isRead ? "opacity-50" : "bg-[#F7B733]/5"
                     }`}
                   >
                     <p className="text-[#171717]">{n.message}</p>

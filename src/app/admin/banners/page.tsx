@@ -12,7 +12,7 @@ interface Banner {
   description: string;
   buttonText: string;
   link: string;
-  order: number;
+  position: number;
   publishDate?: string;
 }
 
@@ -49,7 +49,7 @@ export default function AdminBannersPage() {
     const r = await fetch("/api/admin/banners", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ ...form, order: banners.length }),
+      body: JSON.stringify({ ...form, position: banners.length }),
     });
     if (r.ok) {
       setShowForm(false);

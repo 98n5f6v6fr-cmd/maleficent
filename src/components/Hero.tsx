@@ -71,13 +71,13 @@ export default function Hero() {
           </motion.div>
 
           <motion.div
-            className="hidden lg:flex justify-center items-center"
+            className="flex justify-center items-center"
             initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
             animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
             transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
           >
             <motion.div
-              className="relative w-full max-w-[400px] aspect-[452/733] animate-float"
+              className="relative w-full max-w-[200px] sm:max-w-[300px] lg:max-w-[400px] aspect-[452/733] animate-float"
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
