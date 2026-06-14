@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import SectionAnimation from "./SectionAnimation";
 import GlassIcon from "./GlassIcon";
+import { useAuth } from "@/lib/AuthContext";
 
 interface ShopItem {
   id: number;
@@ -12,64 +14,31 @@ interface ShopItem {
   price: number;
   inStock: boolean;
   category: string;
+  quantity: number;
 }
 
 const defaultItems: ShopItem[] = [
-  {
-    id: 1,
-    image: "",
-    title: "Фигурка «Единорог» из лимитированной серии",
-    price: 4990,
-    inStock: true,
-    category: "Игрушки",
-  },
-  {
-    id: 2,
-    image: "",
-    title: "Набор коллекционных значков",
-    price: 2490,
-    inStock: true,
-    category: "Коллекции",
-  },
-  {
-    id: 3,
-    image: "",
-    title: "Мягкая игрушка «Облачко»",
-    price: 3490,
-    inStock: false,
-    category: "Игрушки",
-  },
-  {
-    id: 4,
-    image: "",
-    title: "Эксклюзивная упаковка сюрприз",
-    price: 5990,
-    inStock: true,
-    category: "Новинки",
-  },
-  {
-    id: 5,
-    image: "",
-    title: "Фигурка «Феникс» с подсветкой",
-    price: 7990,
-    inStock: true,
-    category: "Эксклюзив",
-  },
-  {
-    id: 6,
-    image: "",
-    title: "Набор для творчества «Волшебный лес»",
-    price: 1990,
-    inStock: false,
-    category: "Игрушки",
-  },
+  { id: 1, image: "", title: "Фигурка «Единорог» из лимитированной серии", price: 4990, inStock: true, category: "Игрушки", quantity: 5 },
+  { id: 2, image: "", title: "Набор коллекционных значков", price: 2490, inStock: true, category: "Коллекции", quantity: 5 },
+  { id: 3, image: "", title: "Мягкая игрушка «Облачко»", price: 3490, inStock: false, category: "Игрушки", quantity: 0 },
+  { id: 4, image: "", title: "Эксклюзивная упаковка сюрприз", price: 5990, inStock: true, category: "Новинки", quantity: 5 },
+  { id: 5, image: "", title: "Фигурка «Феникс» с подсветкой", price: 7990, inStock: true, category: "Эксклюзив", quantity: 5 },
+  { id: 6, image: "", title: "Набор для творчества «Волшебный лес»", price: 1990, inStock: false, category: "Игрушки", quantity: 0 },
 ];
 
 export default function ShopSection() {
+  const { user, token } = useAuth();
+  const router = useRouter();
   const [items, setItems] = useState<ShopItem[]>(defaultItems);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Все");
   const [categories, setCategories] = useState<string[]>(["Все", "Игрушки", "Коллекции", "Новинки", "Предзаказ", "Эксклюзив"]);
+
+  const [confirmItem, setConfirmItem] = useState<ShopItem | null>(null);
+  const [phone, setPhone] = useState("");
+  const [messenger, setMessenger] = useState("");
+  const [purchasing, setPurchasing] = useState(false);
+  const [purchaseError, setPurchaseError] = useState("");
 
   useEffect(() => {
     fetch("/api/products")
@@ -85,6 +54,48 @@ export default function ShopSection() {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (confirmItem) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [confirmItem]);
+
+  const handleBuyClick = (item: ShopItem) => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    setConfirmItem(item);
+    setPhone("");
+    setMessenger("");
+    setPurchaseError("");
+  };
+
+  const handleConfirmPurchase = async () => {
+    if (!confirmItem || !token || !phone.trim()) return;
+    setPurchasing(true);
+    try {
+      const res = await fetch("/api/purchase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ productId: confirmItem.id, phone: phone.trim(), messenger: messenger.trim() }),
+      });
+      if (res.ok) {
+        setConfirmItem(null);
+        setItems((prev) => prev.map((i) => i.id === confirmItem.id ? { ...i, quantity: i.quantity - 1, inStock: i.quantity - 1 > 0 } : i));
+      } else {
+        const err = await res.json();
+        setPurchaseError(err.error || "Ошибка при оформлении");
+      }
+    } catch {
+      setPurchaseError("Ошибка при оформлении");
+    }
+    setPurchasing(false);
+  };
 
   const filtered = items.filter((item) => {
     const matchSearch = item.title.toLowerCase().includes(search.toLowerCase());
@@ -173,15 +184,19 @@ export default function ShopSection() {
               </div>
               <div className="p-5">
                 <h3 className="font-semibold text-[#171717] mb-2 line-clamp-2 leading-snug">{item.title}</h3>
+                <div className="text-xs text-[#2C2C2C]/50 mb-3">
+                  {item.quantity > 0 ? `Осталось: ${item.quantity} шт.` : "Нет в наличии"}
+                </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xl font-bold text-[#171717]">
                     {item.price.toLocaleString("ru-RU")} ₽
                   </span>
                   <motion.button
                     disabled={!item.inStock}
+                    onClick={() => handleBuyClick(item)}
                     className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
                       item.inStock
-                        ? "bg-gradient-to-r from-[#F7B733] to-[#FFC95A] text-[#171717]"
+                        ? "bg-gradient-to-r from-[#F7B733] to-[#FFC95A] text-[#171717] cursor-pointer"
                         : "bg-[#FFF3D6] text-[#2C2C2C]/40 cursor-not-allowed"
                     }`}
                     whileHover={item.inStock ? { scale: 1.05, boxShadow: "0 4px 20px rgba(247, 183, 51, 0.3)" } : {}}
@@ -201,6 +216,81 @@ export default function ShopSection() {
           </div>
         )}
       </section>
+
+      <AnimatePresence>
+        {confirmItem && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setConfirmItem(null)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="relative glass-strong rounded-3xl p-8 max-w-md w-full shadow-2xl"
+            >
+              <h3 className="text-xl font-semibold text-[#171717] mb-2">Покупка</h3>
+              <p className="text-sm text-[#2C2C2C]/60 mb-4">{confirmItem.title}</p>
+              <p className="text-lg font-bold text-[#171717] mb-6">{confirmItem.price.toLocaleString("ru-RU")} ₽</p>
+
+              <div className="p-4 rounded-xl bg-[#FFF8E1] border border-[#FFD977]/40 mb-6">
+                <p className="text-sm text-[#171717]">Вы точно хотите совершить покупку?</p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#2C2C2C] mb-1.5">
+                    Номер телефона <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    className="input-field w-full"
+                    placeholder="+7 (999) 123-45-67"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#2C2C2C] mb-1.5">
+                    Messenger для связи
+                  </label>
+                  <input
+                    type="text"
+                    className="input-field w-full"
+                    placeholder="Telegram / WhatsApp / Viber..."
+                    value={messenger}
+                    onChange={(e) => setMessenger(e.target.value)}
+                  />
+                </div>
+
+                {purchaseError && (
+                  <p className="text-sm text-red-500">{purchaseError}</p>
+                )}
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => setConfirmItem(null)}
+                    className="btn-ghost text-sm flex-1 py-3"
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    onClick={handleConfirmPurchase}
+                    disabled={purchasing || !phone.trim()}
+                    className="btn-primary text-sm flex-1 py-3 disabled:opacity-50"
+                  >
+                    {purchasing ? "Оформление..." : "Подтвердить покупку"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </SectionAnimation>
   );
 }

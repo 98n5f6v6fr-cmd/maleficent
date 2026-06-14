@@ -126,6 +126,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ path
       return NextResponse.json(toCamel(data || []));
     }
 
+    if (p === "/api/admin/purchases") {
+      const { data } = await supabase.from("applications").select("*").eq("ariel_email", "").order("id");
+      return NextResponse.json(toCamel(data || []));
+    }
+
     if (p === "/api/admin/banners") {
       const { data } = await supabase.from("banners").select("*").order("position");
       return NextResponse.json(toCamel(data || []));
@@ -183,6 +188,31 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pat
     }
     const url = `${su}/storage/v1/object/public/receipts/${name}`;
     return NextResponse.json({ url });
+  }
+
+  if (p === "/api/purchase") {
+    const token = verifyToken(req);
+    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { productId, phone, messenger } = await req.json();
+    if (!productId || !phone) return NextResponse.json({ error: "Заполните номер телефона" }, { status: 400 });
+
+    const { data: product } = await supabase.from("products").select("*").eq("id", productId).single();
+    if (!product) return NextResponse.json({ error: "Товар не найден" }, { status: 404 });
+    if (product.quantity < 1) return NextResponse.json({ error: "Товара нет в наличии" }, { status: 400 });
+
+    const { error: updateErr } = await supabase.from("products").update({ quantity: product.quantity - 1, in_stock: product.quantity - 1 > 0 }).eq("id", productId);
+    if (updateErr) return NextResponse.json({ error: "Ошибка" }, { status: 500 });
+
+    const contacts = JSON.stringify({ phone, messenger });
+    await supabase.from("applications").insert({
+      user_id: token.id, user_email: token.email,
+      product_id: productId, product_name: product.title,
+      ariel_email: "", ariel_password: "",
+      payment_details: contacts,
+      status: "В процессе",
+    });
+
+    return NextResponse.json({ success: true });
   }
 
   if (p === "/api/applications") {
@@ -253,7 +283,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pa
   const p = "/api/" + path.join("/");
 
   const token = verifyToken(req);
-  if (!token || token.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (p === "/api/notifications/read-all") {
+    await supabase.from("notifications").update({ is_read: true }).eq("user_id", token.id);
+    return NextResponse.json({ success: true });
+  }
+
+  if (token.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const statusMatch = p.match(/^\/api\/admin\/applications\/(\d+)\/status$/);
   if (statusMatch) {
@@ -268,6 +305,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pa
       }
 
     }
+    return NextResponse.json({ success: true });
+  }
+
+  const purchaseStatusMatch = p.match(/^\/api\/admin\/purchases\/(\d+)\/status$/);
+  if (purchaseStatusMatch) {
+    const id = parseInt(purchaseStatusMatch[1]);
+    const { status } = await req.json();
+    await supabase.from("applications").update({ status }).eq("id", id).eq("ariel_email", "");
+    const { data: app } = await supabase.from("applications").select("user_id, product_name").eq("id", id).single();
+    if (app) await supabase.from("notifications").insert({ user_id: app.user_id, message: `Статус выкупа «${app.product_name}» изменён на «${status}»` });
     return NextResponse.json({ success: true });
   }
 
@@ -288,13 +335,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pa
     await supabase.from("applications").update({ receipt_status: receiptStatus }).eq("id", id);
     const { data: app } = await supabase.from("applications").select("user_id, product_name").eq("id", id).single();
     if (app) await supabase.from("notifications").insert({ user_id: app.user_id, message: `Чек для «${app.product_name}» ${receiptStatus === "подтверждён" ? "подтверждён" : "отклонён"}` });
-    return NextResponse.json({ success: true });
-  }
-
-  if (p === "/api/notifications/read-all") {
-    const token = verifyToken(req);
-    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    await supabase.from("notifications").update({ is_read: true }).eq("user_id", token.id);
     return NextResponse.json({ success: true });
   }
 

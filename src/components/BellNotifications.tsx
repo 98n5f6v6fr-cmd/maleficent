@@ -58,12 +58,15 @@ export default function BellNotifications() {
 
   const markAllRead = async () => {
     const token = localStorage.getItem("token");
-    await fetch("/api/notifications/read-all", {
-      method: "PATCH",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-    setUnreadCount(0);
+    try {
+      const res = await fetch("/api/notifications/read-all", {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch {}
   };
 
   return (
