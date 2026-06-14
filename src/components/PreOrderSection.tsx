@@ -135,7 +135,7 @@ export default function PreOrderSection() {
 
   return (
     <SectionAnimation>
-      <section id="preorder" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-40 pb-20">
+      <section id="preorder" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-40 pb-20">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-base font-medium text-[#2C2C2C] mb-3">
             <GlassIcon size="sm">
