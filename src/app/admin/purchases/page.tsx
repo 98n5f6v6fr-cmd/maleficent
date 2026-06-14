@@ -100,12 +100,10 @@ export default function AdminPurchasesPage() {
                         <td className="p-4"><span className={`tag ${statusTag(a.status)}`}>{a.status}</span></td>
                         <td className="p-4">
                           <div className="flex gap-2 flex-wrap">
-                            {nextStatus(a.status) && (
-                              <button onClick={() => updateStatus(a.id, nextStatus(a.status)!)} className="text-xs font-medium text-[#F7B733] hover:text-[#171717]">
-                                {nextStatus(a.status) === "Доставляется" ? "В доставку" : "Завершить"}
-                              </button>
+                            {nextStatus(a.status) === "Доставляется" && (
+                              <button onClick={() => updateStatus(a.id, "Доставляется")} className="text-xs font-medium text-[#F7B733] hover:text-[#171717]">В доставку</button>
                             )}
-                            {a.status !== "Завершена" && (
+                            {nextStatus(a.status) === "Завершена" && (
                               <button onClick={() => updateStatus(a.id, "Завершена")} className="text-xs font-medium text-red-500 hover:text-red-700">Завершить</button>
                             )}
                           </div>
