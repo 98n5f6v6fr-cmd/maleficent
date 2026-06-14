@@ -29,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="ru" className={`${inter.variable} h-full`}>
       <body className="min-h-full flex flex-col" style={{ backgroundColor: "#FFFDF7" }}>
+        <script dangerouslySetInnerHTML={{ __html: "history.scrollRestoration='manual';" }} />
         <AuthProvider>
           <ScrollToTop />
           <Navbar />
