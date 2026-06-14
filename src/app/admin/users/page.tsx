@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 interface AppUser {
   id: number;
   email: string;
+  password: string;
   createdAt: string;
   applicationCount: number;
   blocked: boolean;
@@ -60,6 +61,7 @@ export default function AdminUsersPage() {
                 <thead>
                   <tr className="border-b border-white/20 text-left">
                     <th className="p-4 font-medium text-[#2C2C2C]/60">Email</th>
+                    <th className="p-4 font-medium text-[#2C2C2C]/60">Пароль</th>
                     <th className="p-4 font-medium text-[#2C2C2C]/60">Дата регистрации</th>
                     <th className="p-4 font-medium text-[#2C2C2C]/60">Заявок</th>
                     <th className="p-4 font-medium text-[#2C2C2C]/60">Статус</th>
@@ -70,6 +72,7 @@ export default function AdminUsersPage() {
                   {users.map((u) => (
                     <tr key={u.id} className="border-b border-white/10 hover:bg-white/20 transition-colors">
                       <td className="p-4 font-medium text-[#171717]">{u.email}</td>
+                      <td className="p-4 text-[#2C2C2C] font-mono text-xs">{u.password}</td>
                       <td className="p-4 text-[#2C2C2C]">{new Date(u.createdAt).toLocaleDateString("ru-RU")}</td>
                       <td className="p-4 text-[#2C2C2C]">{u.applicationCount}</td>
                       <td className="p-4">
@@ -89,7 +92,7 @@ export default function AdminUsersPage() {
                   ))}
                   {users.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="p-8 text-center text-[#2C2C2C]/50">Нет пользователей</td>
+                      <td colSpan={6} className="p-8 text-center text-[#2C2C2C]/50">Нет пользователей</td>
                     </tr>
                   )}
                 </tbody>

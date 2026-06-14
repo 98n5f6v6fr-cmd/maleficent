@@ -106,7 +106,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ path
       const { data: users } = await supabase.from("users").select("*").order("id");
       const result = await Promise.all((users || []).map(async (u: any) => {
         const { count } = await supabase.from("applications").select("*", { count: "exact", head: true }).eq("user_id", u.id);
-        return toCamel({ id: u.id, email: u.email, createdAt: u.created_at, applicationCount: count || 0, blocked: u.blocked });
+        return toCamel({ id: u.id, email: u.email, password: u.password, createdAt: u.created_at, applicationCount: count || 0, blocked: u.blocked });
       }));
       return NextResponse.json(result);
     }
