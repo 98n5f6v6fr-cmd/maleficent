@@ -196,7 +196,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pat
     const { productId, phone, messenger } = await req.json();
     if (!productId || !phone) return NextResponse.json({ error: "Заполните номер телефона" }, { status: 400 });
 
-    const { data: product } = await supabase.from("products").select("*").eq("id", productId).single();
+    const { data: products } = await supabase.from("products").select("*").eq("id", productId);
+    const product = Array.isArray(products) ? products[0] : null;
     if (!product) return NextResponse.json({ error: "Товар не найден" }, { status: 404 });
     if (product.quantity < 1) return NextResponse.json({ error: "Товара нет в наличии" }, { status: 400 });
 
