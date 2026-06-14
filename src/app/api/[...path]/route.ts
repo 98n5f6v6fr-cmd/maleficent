@@ -266,9 +266,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pa
       if (status === "Требует оплаты") {
         await supabase.from("notifications").insert({ user_id: app.user_id, message: `Игрушка «${app.product_name}» оформлена и ожидает оплаты` });
       }
-      if (status === "Завершена") {
-        await supabase.from("purchases").insert({ user_id: app.user_id, product_name: app.product_name, status: "Завершена", amount: 0 });
-      }
+
     }
     return NextResponse.json({ success: true });
   }

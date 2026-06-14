@@ -19,19 +19,10 @@ interface Application {
   receiptStatus?: string;
 }
 
-interface Purchase {
-  id: number;
-  productName: string;
-  createdAt: string;
-  status: string;
-  amount: number;
-}
-
 export default function DashboardPage() {
   const { user, token, loading, logout } = useAuth();
   const router = useRouter();
   const [applications, setApplications] = useState<Application[]>([]);
-  const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [payModalApp, setPayModalApp] = useState<Application | null>(null);
   const [receiptFiles, setReceiptFiles] = useState<File[]>([]);
   const [receiptPreviews, setReceiptPreviews] = useState<string[]>([]);
@@ -50,13 +41,6 @@ export default function DashboardPage() {
       })
         .then((r) => r.ok ? r.json() : [])
         .then(setApplications)
-        .catch(() => {});
-
-      fetch("/api/purchases", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((r) => r.ok ? r.json() : [])
-        .then(setPurchases)
         .catch(() => {});
     }
   }, [user, token, loading, router]);
@@ -153,10 +137,9 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
             <DashboardStat label="Всего заявок" value={applications.length} />
             <DashboardStat label="Активных заявок" value={applications.filter(a => a.status !== "Завершена" && a.status !== "Отменена").length} />
-            <DashboardStat label="Покупок" value={purchases.length} />
           </div>
 
           <div className="glass-strong rounded-3xl p-6 sm:p-8 mb-8">
@@ -199,34 +182,6 @@ export default function DashboardPage() {
                         </span>
                       </div>
                     )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="glass-strong rounded-3xl p-6 sm:p-8">
-            <h2 className="text-xl font-semibold text-[#171717] mb-6">Мои покупки</h2>
-            {purchases.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-[#2C2C2C]/50">У вас пока нет покупок</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {purchases.map((p) => (
-                  <div key={p.id} className="glass rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                      <p className="font-medium text-[#171717]">{p.productName}</p>
-                      <p className="text-xs text-[#2C2C2C]/50 mt-0.5">
-                        {new Date(p.createdAt).toLocaleDateString("ru-RU")}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="font-semibold text-[#171717]">
-                        {p.amount.toLocaleString("ru-RU")} ₽
-                      </span>
-                      <span className={`tag ${statusTag(p.status)}`}>{p.status}</span>
-                    </div>
                   </div>
                 ))}
               </div>
