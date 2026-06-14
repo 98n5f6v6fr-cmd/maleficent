@@ -88,6 +88,15 @@ export default function PreOrderSection() {
     }
   }, [user, token]);
 
+  useEffect(() => {
+    if (modalItem) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [modalItem]);
+
   const handleApplyClick = (item: PreOrderItem) => {
     if (!user) {
       router.push("/login");
@@ -121,7 +130,7 @@ export default function PreOrderSection() {
       });
       if (res.ok) {
         setModalItem(null);
-        alert("Заявка успешно подана! Ожидайте подтверждения.");
+        setError("");
       } else {
         const err = await res.json();
         setError(err.message || "Ошибка при подаче заявки");
