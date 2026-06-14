@@ -82,6 +82,12 @@ export const supabase = {
     insert: (body: any) => {
       const p = rest("POST", table, undefined, body);
       const chain: any = {
+        then(resolve: any, reject: any) {
+          p.then((r: any) => {
+            if (r.error) reject(new Error(r.error));
+            else resolve({ data: r.data, error: null, count: null });
+          }, reject);
+        },
         select() {
           return {
             single: async () => {
