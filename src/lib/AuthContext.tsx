@@ -45,15 +45,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) return false;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Неверный email или пароль" }));
+        throw new Error(err.error);
+      }
       const data = await res.json();
       setToken(data.access_token);
       setUser(data.user);
       localStorage.setItem("token", data.access_token);
       localStorage.setItem("user", JSON.stringify(data.user));
       return true;
-    } catch {
-      return false;
+    } catch (e) {
+      throw e instanceof Error ? e : new Error("Неверный email или пароль");
     }
   };
 
@@ -64,15 +67,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) return false;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Ошибка регистрации" }));
+        throw new Error(err.error);
+      }
       const data = await res.json();
       setToken(data.access_token);
       setUser(data.user);
       localStorage.setItem("token", data.access_token);
       localStorage.setItem("user", JSON.stringify(data.user));
       return true;
-    } catch {
-      return false;
+    } catch (e) {
+      throw e instanceof Error ? e : new Error("Ошибка регистрации");
     }
   };
 

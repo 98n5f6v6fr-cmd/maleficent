@@ -31,14 +31,10 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const success = await register(email, password);
-      if (success) {
-        router.push("/dashboard");
-      } else {
-        setError("Пользователь с таким email уже существует");
-      }
-    } catch {
-      setError("Ошибка при регистрации");
+      await register(email, password);
+      router.push("/dashboard");
+    } catch (e: any) {
+      setError(e.message || "Ошибка при регистрации");
     }
     setLoading(false);
   };

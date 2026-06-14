@@ -20,14 +20,10 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const success = await login(email, password);
-      if (success) {
-        router.push("/dashboard");
-      } else {
-        setError("Неверный email или пароль");
-      }
-    } catch {
-      setError("Ошибка при входе");
+      await login(email, password);
+      router.push("/dashboard");
+    } catch (e: any) {
+      setError(e.message || "Ошибка при входе");
     }
     setLoading(false);
   };
