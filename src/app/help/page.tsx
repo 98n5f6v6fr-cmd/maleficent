@@ -6,10 +6,10 @@ import GlassIcon from "@/components/GlassIcon";
 
 export default function HelpPage() {
   const [contacts] = useState({
-    telegram: "@maleficenta_support",
-    discord: "discord.gg/maleficenta",
-    email: "support@maleficenta.ru",
-    phone: "+7 (999) 123-45-67",
+    telegram: "@temigrees",
+    whatsapp: "+7 (913) 935-44-44",
+    phone: "+7 (913) 935-44-44",
+    mah: "+7 (913) 935-44-44",
   });
 
   const faq = [
@@ -80,18 +80,8 @@ export default function HelpPage() {
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
               }
-              label="Discord"
-              value={contacts.discord}
-            />
-            <ContactCard
-              icon={
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7B733" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                  <polyline points="22,6 12,13 2,6" />
-                </svg>
-              }
-              label="Email"
-              value={contacts.email}
+              label="WhatsApp"
+              value={contacts.whatsapp}
             />
             <ContactCard
               icon={
@@ -101,6 +91,15 @@ export default function HelpPage() {
               }
               label="Телефон"
               value={contacts.phone}
+            />
+            <ContactCard
+              icon={
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7B733" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+              }
+              label="МАХ"
+              value={contacts.mah}
             />
           </div>
 
