@@ -256,7 +256,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pat
     const token = verifyToken(req);
     if (!token || token.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     const body = await req.json();
-    await supabase.from("preorders").insert({ ...body, spots_taken: 0 });
+    await supabase.from("preorders").insert({ ...body, sale_date: body.saleDate, spots_taken: 0 });
     return NextResponse.json({ success: true });
   }
 
@@ -336,6 +336,22 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pa
     await supabase.from("applications").update({ receipt_status: receiptStatus }).eq("id", id);
     const { data: app } = await supabase.from("applications").select("user_id, product_name").eq("id", id).single();
     if (app) await supabase.from("notifications").insert({ user_id: app.user_id, message: `Чек для «${app.product_name}» ${receiptStatus === "подтверждён" ? "подтверждён" : "отклонён"}` });
+    return NextResponse.json({ success: true });
+  }
+
+  const productEditMatch = p.match(/^\/api\/admin\/products\/(\d+)$/);
+  if (productEditMatch) {
+    const id = parseInt(productEditMatch[1]);
+    const body = await req.json();
+    await supabase.from("products").update({ ...body, in_stock: body.quantity > 0 }).eq("id", id);
+    return NextResponse.json({ success: true });
+  }
+
+  const preorderEditMatch = p.match(/^\/api\/admin\/preorders\/(\d+)$/);
+  if (preorderEditMatch) {
+    const id = parseInt(preorderEditMatch[1]);
+    const body = await req.json();
+    await supabase.from("preorders").update({ ...body, sale_date: body.saleDate }).eq("id", id);
     return NextResponse.json({ success: true });
   }
 
