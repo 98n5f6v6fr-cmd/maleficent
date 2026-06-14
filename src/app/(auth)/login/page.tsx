@@ -54,7 +54,7 @@ export default function LoginPage() {
             </GlassIcon>
             <h1 className="text-2xl font-bold text-[#171717]">Вход в аккаунт</h1>
             <p className="text-[#2C2C2C]/60 text-sm mt-1">
-              Введите email и пароль от f-ariel.ru
+              Введите email и пароль от аккаунта
             </p>
           </div>
 

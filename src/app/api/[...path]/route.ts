@@ -146,7 +146,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pat
 
   if (p === "/api/auth/login") {
     const { email, password } = await req.json();
-    const { data } = await supabase.from("users").select("*").eq("email", email).single();
+    const { data } = await supabase.from("users").select("*").eq("email", email.toLowerCase()).single();
     if (!data || data.password !== password) return NextResponse.json({ error: "Неверный email или пароль" }, { status: 401 });
     if (data.blocked) return NextResponse.json({ error: "Заблокирован" }, { status: 403 });
     return NextResponse.json({ access_token: genToken({ id: data.id, email: data.email, role: data.role }), user: toCamel({ id: data.id, email: data.email, role: data.role }) });
