@@ -80,7 +80,31 @@ export default function AdminReceiptsPage() {
 
                   <div className="mt-3 p-3 rounded-xl bg-white/40 border border-white/20">
                     <p className="text-xs font-semibold text-[#2C2C2C]/60 mb-1">Данные чека:</p>
-                    <p className="text-sm text-[#171717] whitespace-pre-wrap">{app.receipt}</p>
+                    {(() => {
+                      try {
+                        const parsed = JSON.parse(app.receipt);
+                        return (
+                          <>
+                            {parsed.urls && parsed.urls.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mb-2">
+                                {parsed.urls.map((url: string, i: number) => (
+                                  <a key={i} href={url} target="_blank" className="block w-20 h-20 rounded-lg overflow-hidden border border-[#F7B733]/20">
+                                    {url.match(/\.pdf$/i) ? (
+                                      <div className="w-full h-full flex items-center justify-center bg-[#FFF8E8] text-[#F7B733] text-xs font-medium">PDF</div>
+                                    ) : (
+                                      <img src={url} alt="receipt" className="w-full h-full object-cover" />
+                                    )}
+                                  </a>
+                                ))}
+                              </div>
+                            )}
+                            {parsed.notes && <p className="text-sm text-[#171717] whitespace-pre-wrap">{parsed.notes}</p>}
+                          </>
+                        );
+                      } catch {
+                        return <p className="text-sm text-[#171717] whitespace-pre-wrap">{app.receipt}</p>;
+                      }
+                    })()}
                   </div>
 
                   {app.receiptStatus === "не проверен" && (
