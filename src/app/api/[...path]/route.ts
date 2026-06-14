@@ -63,7 +63,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ path
   if (p === "/api/applications/my") {
     const token = verifyToken(req);
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const { data } = await supabase.from("applications").select("*").eq("user_id", token.id).order("id");
+    const { data } = await supabase.from("applications").select("*").eq("user_id", token.id).order("id", { ascending: false });
     return NextResponse.json(toCamel(data || []));
   }
 
@@ -84,7 +84,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ path
   if (p === "/api/purchases") {
     const token = verifyToken(req);
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const { data } = await supabase.from("purchases").select("*").eq("user_id", token.id).order("id");
+    const { data } = await supabase.from("purchases").select("*").eq("user_id", token.id).order("id", { ascending: false });
     return NextResponse.json(toCamel(data || []));
   }
 
@@ -122,12 +122,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ path
     }
 
     if (p === "/api/admin/applications") {
-      const { data } = await supabase.from("applications").select("*").order("id");
+      const { data } = await supabase.from("applications").select("*").order("id", { ascending: false });
       return NextResponse.json(toCamel(data || []));
     }
 
     if (p === "/api/admin/purchases") {
-      const { data } = await supabase.from("applications").select("*").eq("ariel_email", "").order("id");
+      const { data } = await supabase.from("applications").select("*").eq("ariel_email", "").order("id", { ascending: false });
       return NextResponse.json(toCamel(data || []));
     }
 
