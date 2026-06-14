@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/AuthContext";
 
 interface Application {
@@ -32,9 +32,12 @@ export default function DashboardPage() {
   const router = useRouter();
   const [applications, setApplications] = useState<Application[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
-  const [receiptText, setReceiptText] = useState("");
-  const [selectedAppId, setSelectedAppId] = useState<number | null>(null);
-  const [receiptSending, setReceiptSending] = useState(false);
+  const [payModalApp, setPayModalApp] = useState<Application | null>(null);
+  const [receiptFiles, setReceiptFiles] = useState<File[]>([]);
+  const [receiptPreviews, setReceiptPreviews] = useState<string[]>([]);
+  const [receiptNotes, setReceiptNotes] = useState("");
+  const [sending, setSending] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -58,25 +61,68 @@ export default function DashboardPage() {
     }
   }, [user, token, loading, router]);
 
-  const sendReceipt = async (applicationId: number) => {
-    if (!receiptText.trim() || !token) return;
-    setReceiptSending(true);
-    const r = await fetch("/api/applications/receipt", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ applicationId, receipt: receiptText }),
-    });
-    if (r.ok) {
-      setReceiptText("");
-      setSelectedAppId(null);
-      fetch("/api/applications/my", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((res) => res.ok ? res.json() : [])
-        .then(setApplications)
-        .catch(() => {});
+  useEffect(() => {
+    if (payModalApp) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
     }
-    setReceiptSending(false);
+    return () => { document.body.style.overflow = ""; };
+  }, [payModalApp]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setReceiptFiles((prev) => [...prev, ...files]);
+    for (const f of files) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        if (ev.target?.result) setReceiptPreviews((prev) => [...prev, ev.target!.result as string]);
+      };
+      reader.readAsDataURL(f);
+    }
+  };
+
+  const removeFile = (i: number) => {
+    setReceiptFiles((prev) => prev.filter((_, idx) => idx !== i));
+    setReceiptPreviews((prev) => prev.filter((_, idx) => idx !== i));
+  };
+
+  const sendReceipt = async () => {
+    if (!payModalApp || !token) return;
+    setSending(true);
+    try {
+      const urls: string[] = [];
+      for (const f of receiptFiles) {
+        const fd = new FormData();
+        fd.append("file", f);
+        const r = await fetch("/api/upload", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: fd,
+        });
+        if (r.ok) {
+          const { url } = await r.json();
+          urls.push(url);
+        }
+      }
+      const receiptData = JSON.stringify({ urls, notes: receiptNotes });
+      const r = await fetch("/api/applications/receipt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ applicationId: payModalApp.id, receipt: receiptData }),
+      });
+      if (r.ok) {
+        setPayModalApp(null);
+        setReceiptFiles([]);
+        setReceiptPreviews([]);
+        setReceiptNotes("");
+        const res = await fetch("/api/applications/my", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) setApplications(await res.json());
+      }
+    } catch {}
+    setSending(false);
   };
 
   if (loading || !user) return null;
@@ -135,71 +181,22 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className={`tag ${statusTag(app.status)}`}>{app.status}</span>
-                        {app.paymentLink && app.status === "Требует оплаты" && (
-                          <a href={app.paymentLink} target="_blank" className="btn-primary text-sm py-2 px-4">
+                        {app.status === "Требует оплаты" && (
+                          <button
+                            onClick={() => { setPayModalApp(app); setReceiptFiles([]); setReceiptPreviews([]); setReceiptNotes(""); }}
+                            className="btn-primary text-sm py-2 px-4"
+                          >
                             Оплатить
-                          </a>
+                          </button>
                         )}
                       </div>
                     </div>
 
-                    {app.paymentDetails && app.status === "Требует оплаты" && (
-                      <div className="mt-3 p-3 rounded-xl bg-[#FFF8E1] border border-[#FFD977]/40">
-                        <p className="text-xs font-semibold text-[#171717] mb-1">Реквизиты для оплаты:</p>
-                        <p className="text-sm text-[#2C2C2C] whitespace-pre-wrap">{app.paymentDetails}</p>
-                        {app.paymentDue && (
-                          <p className="text-xs text-[#2C2C2C]/50 mt-1">
-                            Оплатить до: {new Date(app.paymentDue).toLocaleDateString("ru-RU")}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {app.status === "Требует оплаты" && (
+                    {app.receipt && (
                       <div className="mt-3 pt-3 border-t border-white/20">
-                        {app.receipt ? (
-                          <div className="flex items-center gap-2">
-                            <span className={`tag text-xs ${app.receiptStatus === "подтверждён" ? "tag-completed" : app.receiptStatus === "отклонён" ? "tag-cancelled" : "tag-pending"}`}>
-                              {app.receiptStatus === "подтверждён" ? "Чек подтверждён" : app.receiptStatus === "отклонён" ? "Чек отклонён" : "Чек на проверке"}
-                            </span>
-                          </div>
-                        ) : (
-                          <>
-                            {selectedAppId === app.id ? (
-                              <div className="flex flex-col gap-2">
-                                <textarea
-                                  className="input-field text-sm"
-                                  rows={2}
-                                  placeholder="Введите данные чека (номер транзакции, сумма, дата)..."
-                                  value={receiptText}
-                                  onChange={(e) => setReceiptText(e.target.value)}
-                                />
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => sendReceipt(app.id)}
-                                    disabled={receiptSending || !receiptText.trim()}
-                                    className="btn-primary text-xs py-2 px-4"
-                                  >
-                                    {receiptSending ? "Отправка..." : "Отправить на проверку"}
-                                  </button>
-                                  <button
-                                    onClick={() => { setSelectedAppId(null); setReceiptText(""); }}
-                                    className="btn-ghost text-xs"
-                                  >
-                                    Отмена
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => setSelectedAppId(app.id)}
-                                className="text-xs font-medium text-[#F7B733] hover:text-[#171717] transition-colors"
-                              >
-                                + Прикрепить чек
-                              </button>
-                            )}
-                          </>
-                        )}
+                        <span className={`tag text-xs ${app.receiptStatus === "подтверждён" ? "tag-completed" : app.receiptStatus === "отклонён" ? "tag-cancelled" : "tag-pending"}`}>
+                          {app.receiptStatus === "подтверждён" ? "Чек подтверждён" : app.receiptStatus === "отклонён" ? "Чек отклонён" : "Чек на проверке"}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -243,6 +240,112 @@ export default function DashboardPage() {
           </div>
         </motion.div>
       </div>
+
+      <AnimatePresence>
+        {payModalApp && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => { setPayModalApp(null); setReceiptFiles([]); setReceiptPreviews([]); setReceiptNotes(""); }} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="relative glass-strong rounded-3xl p-8 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <h3 className="text-xl font-semibold text-[#171717] mb-2">Оплата заявки</h3>
+              <p className="text-sm text-[#2C2C2C]/60 mb-6">{payModalApp.productName}</p>
+
+              {payModalApp.paymentDetails && (
+                <div className="mb-6 p-4 rounded-xl bg-[#FFF8E1] border border-[#FFD977]/40">
+                  <p className="text-xs font-semibold text-[#171717] mb-1">Реквизиты для оплаты:</p>
+                  <p className="text-sm text-[#2C2C2C] whitespace-pre-wrap">{payModalApp.paymentDetails}</p>
+                  {payModalApp.paymentDue && (
+                    <p className="text-xs text-[#2C2C2C]/50 mt-1">
+                      Оплатить до: {new Date(payModalApp.paymentDue).toLocaleDateString("ru-RU")}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#2C2C2C] mb-2">
+                    Прикрепить чек (фото, скриншот, PDF)
+                  </label>
+                  <button
+                    onClick={() => fileRef.current?.click()}
+                    className="w-full border-2 border-dashed border-[#F7B733]/40 rounded-xl py-6 text-center text-sm text-[#2C2C2C]/50 hover:border-[#F7B733] hover:text-[#F7B733] transition-all cursor-pointer"
+                  >
+                    + Выберите файлы
+                  </button>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    multiple
+                    accept="image/*,.pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </div>
+
+                {receiptPreviews.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {receiptPreviews.map((preview, i) => (
+                      <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-[#F7B733]/20 group">
+                        {receiptFiles[i]?.type === "application/pdf" ? (
+                          <div className="w-full h-full flex items-center justify-center bg-[#FFF8E8] text-[#F7B733] text-xs font-medium">PDF</div>
+                        ) : (
+                          <img src={preview} alt="receipt" className="w-full h-full object-cover" />
+                        )}
+                        <button
+                          onClick={() => removeFile(i)}
+                          className="absolute top-0.5 right-0.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-[#2C2C2C] mb-1.5">
+                    Комментарий (необязательно)
+                  </label>
+                  <textarea
+                    className="input-field w-full text-sm"
+                    rows={2}
+                    placeholder="Номер транзакции, сумма, дата..."
+                    value={receiptNotes}
+                    onChange={(e) => setReceiptNotes(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => { setPayModalApp(null); setReceiptFiles([]); setReceiptPreviews([]); setReceiptNotes(""); }}
+                    className="btn-ghost text-sm flex-1 py-3"
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    onClick={sendReceipt}
+                    disabled={sending || receiptFiles.length === 0}
+                    className="btn-primary text-sm flex-1 py-3 disabled:opacity-50"
+                  >
+                    {sending ? "Отправка..." : "Отправить"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

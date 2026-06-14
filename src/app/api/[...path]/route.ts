@@ -161,6 +161,30 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pat
     return NextResponse.json({ access_token: genToken({ id: data.id, email: data.email, role: data.role }), user: toCamel({ id: data.id, email: data.email, role: data.role }) });
   }
 
+  if (p === "/api/upload") {
+    const token = verifyToken(req);
+    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const form = await req.formData();
+    const file = form.get("file") as File | null;
+    if (!file) return NextResponse.json({ error: "No file" }, { status: 400 });
+    const buf = Buffer.from(await file.arrayBuffer());
+    const ext = file.name.split(".").pop() || "jpg";
+    const name = `${token.id}_${Date.now()}.${ext}`;
+    const su = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const sk = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+    const up = await fetch(`${su}/storage/v1/object/receipts/${name}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${sk}`, "Content-Type": file.type },
+      body: buf,
+    });
+    if (!up.ok) {
+      const t = await up.text();
+      return NextResponse.json({ error: t }, { status: 500 });
+    }
+    const url = `${su}/storage/v1/object/public/receipts/${name}`;
+    return NextResponse.json({ url });
+  }
+
   if (p === "/api/applications") {
     const token = verifyToken(req);
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
