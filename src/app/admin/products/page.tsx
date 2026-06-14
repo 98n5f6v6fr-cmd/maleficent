@@ -27,21 +27,6 @@ interface PreOrderItem {
   spotsTaken: number;
 }
 
-const defaultProducts: Omit<Product, "id">[] = [
-  { image: "", title: "Фигурка «Единорог» из лимитированной серии", description: "", price: 4990, inStock: true, category: "Игрушки", quantity: 5 },
-  { image: "", title: "Набор коллекционных значков", description: "", price: 2490, inStock: true, category: "Коллекции", quantity: 5 },
-  { image: "", title: "Мягкая игрушка «Облачко»", description: "", price: 3490, inStock: false, category: "Игрушки", quantity: 0 },
-  { image: "", title: "Эксклюзивная упаковка сюрприз", description: "", price: 5990, inStock: true, category: "Новинки", quantity: 5 },
-  { image: "", title: "Фигурка «Феникс» с подсветкой", description: "", price: 7990, inStock: true, category: "Эксклюзив", quantity: 5 },
-  { image: "", title: "Набор для творчества «Волшебный лес»", description: "", price: 1990, inStock: false, category: "Игрушки", quantity: 0 },
-];
-
-const defaultPreorders: Omit<PreOrderItem, "id">[] = [
-  { image: "", title: "Коллекционная фигурка «Принцесса»", description: "Лимитированная серия. Высота 30 см. Ручная роспись.", price: 5990, saleDate: "2026-07-15", spots: 50, spotsTaken: 0 },
-  { image: "", title: "Эксклюзивный набор «Сказочный мир»", description: "Набор из 5 фигурок в подарочной упаковке.", price: 8490, saleDate: "2026-08-01", spots: 30, spotsTaken: 0 },
-  { image: "", title: "Виниловая фигурка «Дракон»", description: "Ограниченный выпуск. Светящиеся элементы.", price: 3990, saleDate: "2026-06-28", spots: 100, spotsTaken: 0 },
-];
-
 export default function AdminProductsPage() {
   return <Suspense fallback={null}><AdminProductsPageInner /></Suspense>;
 }
@@ -54,7 +39,6 @@ function AdminProductsPageInner() {
   const [products, setProducts] = useState<Product[]>([]);
   const [preorders, setPreorders] = useState<PreOrderItem[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [seeding, setSeeding] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
@@ -141,24 +125,6 @@ function AdminProductsPageInner() {
     if (r.ok) loadData();
   };
 
-  const handleSeed = async () => {
-    const token = localStorage.getItem("token");
-    setSeeding(true);
-    const items = tab === "shop" ? defaultProducts : defaultPreorders;
-    const endpoint = tab === "shop" ? "/api/admin/products" : "/api/admin/preorders";
-    try {
-      for (const item of items) {
-        await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify(item),
-        });
-      }
-      loadData();
-    } catch {}
-    setSeeding(false);
-  };
-
   if (loading || !user) return null;
 
   return (
@@ -177,9 +143,6 @@ function AdminProductsPageInner() {
           <div className="flex gap-3 mb-6">
             <button onClick={() => setShowForm(!showForm)} className="btn-primary text-sm">
               {showForm ? "Отмена" : `+ Добавить ${tab === "shop" ? "товар" : "предзапись"}`}
-            </button>
-            <button onClick={handleSeed} disabled={seeding} className="btn-ghost text-sm">
-              {seeding ? "Заполнение..." : `Заполнить БД ${tab === "shop" ? "товарами" : "предзаписями"} по умолчанию`}
             </button>
           </div>
 

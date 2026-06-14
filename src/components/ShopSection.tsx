@@ -17,19 +17,10 @@ interface ShopItem {
   quantity: number;
 }
 
-const defaultItems: ShopItem[] = [
-  { id: 1, image: "", title: "Фигурка «Единорог» из лимитированной серии", price: 4990, inStock: true, category: "Игрушки", quantity: 5 },
-  { id: 2, image: "", title: "Набор коллекционных значков", price: 2490, inStock: true, category: "Коллекции", quantity: 5 },
-  { id: 3, image: "", title: "Мягкая игрушка «Облачко»", price: 3490, inStock: false, category: "Игрушки", quantity: 0 },
-  { id: 4, image: "", title: "Эксклюзивная упаковка сюрприз", price: 5990, inStock: true, category: "Новинки", quantity: 5 },
-  { id: 5, image: "", title: "Фигурка «Феникс» с подсветкой", price: 7990, inStock: true, category: "Эксклюзив", quantity: 5 },
-  { id: 6, image: "", title: "Набор для творчества «Волшебный лес»", price: 1990, inStock: false, category: "Игрушки", quantity: 0 },
-];
-
 export default function ShopSection() {
   const { user, token } = useAuth();
   const router = useRouter();
-  const [items, setItems] = useState<ShopItem[]>(defaultItems);
+  const [items, setItems] = useState<ShopItem[]>([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Все");
   const [categories, setCategories] = useState<string[]>(["Все", "Игрушки", "Коллекции", "Новинки", "Предзаказ", "Эксклюзив"]);

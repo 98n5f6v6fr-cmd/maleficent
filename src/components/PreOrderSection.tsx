@@ -18,41 +18,8 @@ interface PreOrderItem {
   spotsTaken: number;
 }
 
-const defaultItems: PreOrderItem[] = [
-  {
-    id: 1,
-    image: "",
-    title: "Коллекционная фигурка «Принцесса»",
-    description: "Лимитированная серия. Высота 30 см. Ручная роспись.",
-    price: 5990,
-    saleDate: "2026-07-15",
-    spots: 50,
-    spotsTaken: 12,
-  },
-  {
-    id: 2,
-    image: "",
-    title: "Эксклюзивный набор «Сказочный мир»",
-    description: "Набор из 5 фигурок в подарочной упаковке.",
-    price: 8490,
-    saleDate: "2026-08-01",
-    spots: 30,
-    spotsTaken: 8,
-  },
-  {
-    id: 3,
-    image: "",
-    title: "Виниловая фигурка «Дракон»",
-    description: "Ограниченный выпуск. Светящиеся элементы.",
-    price: 3990,
-    saleDate: "2026-06-28",
-    spots: 100,
-    spotsTaken: 45,
-  },
-];
-
 export default function PreOrderSection() {
-  const [items, setItems] = useState<PreOrderItem[]>(defaultItems);
+  const [items, setItems] = useState<PreOrderItem[]>([]);
   const { user, token } = useAuth();
   const router = useRouter();
   const [modalItem, setModalItem] = useState<PreOrderItem | null>(null);
