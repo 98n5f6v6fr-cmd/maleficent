@@ -256,7 +256,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pat
     const token = verifyToken(req);
     if (!token || token.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     const body = await req.json();
-    await supabase.from("preorders").insert({ ...body, sale_date: body.saleDate, spots_taken: 0 });
+    await supabase.from("preorders").insert({ title: body.title, description: body.description, price: body.price, image: body.image, sale_date: body.saleDate, spots: body.spots, spots_taken: 0 });
     return NextResponse.json({ success: true });
   }
 
@@ -351,7 +351,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ pa
   if (preorderEditMatch) {
     const id = parseInt(preorderEditMatch[1]);
     const body = await req.json();
-    await supabase.from("preorders").update({ ...body, sale_date: body.saleDate }).eq("id", id);
+    await supabase.from("preorders").update({ title: body.title, description: body.description, price: body.price, image: body.image, sale_date: body.saleDate, spots: body.spots }).eq("id", id);
     return NextResponse.json({ success: true });
   }
 
