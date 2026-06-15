@@ -112,7 +112,7 @@ export default function ShopSection() {
             Товары в наличии
           </h2>
           <p className="text-[#2C2C2C]/70 mt-2 max-w-lg mx-auto">
-            Коллекционные игрушки и эксклюзивные наборы
+            Коллекционные ёлочные игрушки и эксклюзивные наборы
           </p>
         </div>
 

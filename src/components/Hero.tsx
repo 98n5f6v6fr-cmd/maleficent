@@ -37,7 +37,7 @@ export default function Hero() {
             </h1>
 
             <p className="text-lg sm:text-xl text-[#2C2C2C]/80 leading-relaxed max-w-lg mb-8">
-              Сервис оформления заявок на коллекционные игрушки без риска пропустить старт продаж.
+              Сервис оформления заявок на коллекционные ёлочные игрушки без риска пропустить старт продаж.
             </p>
 
             <div className="flex flex-wrap gap-4">

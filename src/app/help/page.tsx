@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import GlassIcon from "@/components/GlassIcon";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function HelpPage() {
+  const { user } = useAuth();
   const [contacts] = useState({
     telegram: "@temigrees",
     whatsapp: "+7 (913) 935-44-44",
@@ -30,12 +32,12 @@ export default function HelpPage() {
       a: "После подтверждения заявки администратор прикрепляет реквизиты и ссылку на оплату. Вы получаете уведомление в личном кабинете.",
     },
     {
-      q: "Где будет моя заявка на игрушку?",
-      a: "В случае успеха заявка появится в личном кабинете на сайте f-ariel.com. Оплатить игрушку и указать данные получателя вы сможете непосредственно там.",
+      q: "Где будет моя заявка на ёлочную игрушку?",
+      a: "В случае успеха заявка появится в личном кабинете на сайте f-ariel.com. Оплатить ёлочную игрушку и указать данные получателя вы сможете непосредственно там.",
     },
     {
       q: "Вы гарантируете 100% успех?",
-      a: "Нет, но мы делаем всё возможное, чтобы каждый клиент получил желанную коллекционную игрушку.",
+      a: "Нет, но мы делаем всё возможное, чтобы каждый клиент получил желанную коллекционную ёлочную игрушку.",
     },
 
   ];
@@ -69,44 +71,60 @@ export default function HelpPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
-            <ContactCard
-              icon={
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7B733" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+          {user ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
+              <ContactCard
+                icon={
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7B733" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                }
+                label="Telegram"
+                value={contacts.telegram}
+              />
+              <ContactCard
+                icon={
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7B733" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                }
+                label="WhatsApp"
+                value={contacts.whatsapp}
+              />
+              <ContactCard
+                icon={
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7B733" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                }
+                label="Телефон"
+                value={contacts.phone}
+              />
+              <ContactCard
+                icon={
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7B733" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                }
+                label="МАХ"
+                value={contacts.mah}
+              />
+            </div>
+          ) : (
+            <div className="glass rounded-2xl p-8 mb-12 text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl glass mb-4">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F7B733" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
-              }
-              label="Telegram"
-              value={contacts.telegram}
-            />
-            <ContactCard
-              icon={
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7B733" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-              }
-              label="WhatsApp"
-              value={contacts.whatsapp}
-            />
-            <ContactCard
-              icon={
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7B733" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                </svg>
-              }
-              label="Телефон"
-              value={contacts.phone}
-            />
-            <ContactCard
-              icon={
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7B733" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-              }
-              label="МАХ"
-              value={contacts.mah}
-            />
-          </div>
+              </div>
+              <h3 className="text-lg font-semibold text-[#171717] mb-2">Контакты для авторизованных</h3>
+              <p className="text-sm text-[#2C2C2C]/60 max-w-md mx-auto">
+                Контактные данные доступны только после входа в личный кабинет. 
+                <a href="/login" className="text-[#F7B733] hover:text-[#e0a020] font-medium ml-1">Войти</a>
+              </p>
+            </div>
+          )}
 
           <div className="glass-strong rounded-3xl p-6 sm:p-8">
             <h2 className="text-xl font-semibold text-[#171717] mb-6">FAQ</h2>

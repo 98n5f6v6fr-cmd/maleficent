@@ -16,7 +16,7 @@ export default function Footer() {
               <span className="font-semibold text-lg text-[#171717]">Maleficent</span>
             </div>
             <p className="text-[#2C2C2C] text-sm leading-relaxed max-w-md">
-              Сервис оформления заявок на коллекционные игрушки. 
+              Сервис оформления заявок на коллекционные ёлочные игрушки. 
               Без риска пропустить старт продаж.
             </p>
           </div>
